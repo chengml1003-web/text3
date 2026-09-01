@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>问答助手（旧版弹窗）</title>
+    <style>
+      :root {
+        --blue: #2f7de1;
+        --ink: #142033;
+        --muted: #6b7385;
+        --line: #e6ebf3;
+        --red: #e23c3c;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+        font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background: #eef2f8;
+      }
+
+      .app {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        max-width: 920px;
+        margin: 0 auto;
+        background: #fff;
+      }
+
+      .topbar { padding: 16px 24px 12px; border-bottom: 1px solid var(--line); }
+      .brand { font-size: 18px; font-weight: 700; }
+      .topbar-sub { margin-top: 4px; font-size: 12px; color: #8a8a8a; }
+
+      .chat {
+        flex: 1;
+        overflow: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: linear-gradient(180deg, #f7f9fc 0%, #fff 80%);
+      }
+
+      .bubble {
+        max-width: 78%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        line-height: 1.6;
+        font-size: 14px;
+        white-space: pre-wrap;
+      }
+      .bubble.assistant { align-self: flex-start; background: #f3f5f8; }
+      .bubble.user { align-self: flex-end; background: #e8f1fd; color: #1a3d73; }
+
+      .composer { padding: 8px 20px 18px; border-top: 1px solid var(--line); }
+      .starters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+      .starters button {
+        border: 1px solid #dbe4f0;
+        background: #fff;
+        color: #4a5568;
+        border-radius: 16px;
+        padding: 4px 10px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      .composer-box {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        border: 1px solid #d9e2ef;
+        border-radius: 12px;
+        padding: 8px 10px;
+      }
+      .composer-box textarea {
+        flex: 1;
+        border: 0;
+        resize: none;
+        outline: none;
+        font: inherit;
+        font-size: 14px;
+        min-height: 36px;
+      }
+      .icon-btn, .send-btn { border: 0; cursor: pointer; font: inherit; }
+      .icon-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #eef3fb;
+        color: var(--blue);
+        font-size: 20px;
+      }
+      .send-btn {
+        background: var(--blue);
+        color: #fff;
+        border-radius: 8px;
+        padding: 7px 14px;
+        font-size: 13px;
+      }
+      .hint { margin: 8px 2px 0; font-size: 12px; color: #9aa3af; }
+      .demo-row { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+      .demo-row button {
+        border: 1px dashed #c5d4ea;
+        background: #f7faff;
+        color: #3a6fb0;
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      .hit-count { color: #e23c3c; font-weight: 700; }
+      .snippet-label { color: #e23c3c; font-weight: 700; }
+
+      .modal-mask {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 24px;
+      }
+      .modal-mask.open { display: flex; }
+
+      .modal-card {
+        position: relative;
+        width: min(600px, 100%);
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+        padding: 24px 28px 22px;
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 12px;
+        right: 14px;
+        border: 0;
+        background: transparent;
+        color: #b0b0b0;
+        font-size: 26px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .warn-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #f5c518;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .modal-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #111;
+      }
+
+      .modal-lead {
+        margin: 0 0 18px;
+        font-size: 14px;
+        line-height: 1.7;
+        color: #333;
+      }
+
+      .section-title {
+        margin: 0 0 8px;
+        font-size: 13px;
+        color: #8a8a8a;
+        font-weight: 500;
+      }
+
+      .detail-block { margin-bottom: 16px; }
+      .detail-block summary {
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .detail-block summary::-webkit-details-marker { display: none; }
+      .detail-block summary::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 6px solid #8c8c8c;
+        transform: rotate(-90deg);
+      }
+      .detail-block[open] summary::before { transform: rotate(0deg); }
+
+      .upload-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .upload-chip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid #ececec;
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 8px 10px;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        font: inherit;
+      }
+      .upload-chip:hover { border-color: #c5d4ea; background: #f7faff; }
+
+      .chip-meta { min-width: 0; flex: 1; }
+      .chip-name {
+        font-size: 13px;
+        color: #222;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .chip-sub { font-size: 11px; color: #999; margin-top: 2px; }
+
+      .detail-list {
+        margin-top: 10px;
+        max-height: 240px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding-right: 6px;
+      }
+
+      .word-ico, .xls-ico, .pdf-ico, .img-ico {
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .word-ico { background: #2b579a; font-size: 12px; }
+      .xls-ico { background: #1d6f42; }
+      .pdf-ico { background: #d32f2f; font-size: 9px; }
+      .img-ico { background: #7b5ea7; font-size: 12px; }
+
+      .detail-list::-webkit-scrollbar { width: 6px; }
+      .detail-list::-webkit-scrollbar-track { background: #eeeeee; border-radius: 3px; }
+      .detail-list::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 3px; }
+
+      .hit-file {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: #555;
+        font-weight: 600;
+      }
+
+      .remove-file {
+        flex-shrink: 0;
+        width: 22px;
+        height: 22px;
+        border: 0;
+        background: transparent;
+        color: #b0b0b0;
+        font-size: 20px;
+        line-height: 22px;
+        cursor: pointer;
+        padding: 0;
+        font-family: inherit;
+      }
+      .remove-file:hover { color: #8c8c8c; }
+
+      .hit-box {
+        background: #f5f5f5;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 13px;
+        line-height: 1.7;
+        color: #333;
+      }
+      .hit-line {
+        display: grid;
+        grid-template-columns: 72px 1fr;
+        gap: 8px;
+        align-items: start;
+      }
+      .hit-line + .hit-line { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e6e6e6; }
+      .hit-value { word-break: break-all; color: #444; }
+      .snippet-label { color: #e23c3c; font-weight: 700; }
+
+      .policy-text {
+        margin: 0 0 6px;
+        font-size: 12px;
+        line-height: 1.8;
+        color: #888;
+      }
+      .policy-list {
+        margin: 0 0 20px;
+        padding-left: 18px;
+        color: #888;
+        font-size: 12px;
+        line-height: 1.9;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 28px;
+        flex-wrap: wrap;
+      }
+
+      .btn-primary {
+        border: 0;
+        background: var(--blue);
+        color: #fff;
+        height: 36px;
+        padding: 0 18px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .btn-primary:hover { background: #256fd0; }
+      .btn-text {
+        border: 0;
+        background: transparent;
+        color: #4a4a4a;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .btn-text:hover { color: #111; }
+
+      .viewer {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1100;
+        background: rgba(0, 0, 0, 0.45);
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .viewer.open { display: flex; }
+      .viewer-card {
+        width: min(640px, 100%);
+        max-height: 86vh;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        overflow: hidden;
+      }
+      .viewer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px 10px;
+      }
+      .viewer-head h3 { margin: 0; font-size: 16px; }
+      .viewer-body { padding: 0 20px 8px; overflow: auto; min-height: 220px; }
+      .viewer-body textarea {
+        width: 100%;
+        min-height: 240px;
+        border: 0;
+        outline: none;
+        resize: none;
+        background: #f5f5f5;
+        border-radius: 4px;
+        padding: 12px 14px;
+        font: 13px/1.7 inherit;
+      }
+      .sheet {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .sheet th, .sheet td {
+        border: 1px solid #e0e0e0;
+        padding: 0;
+      }
+      .sheet th { background: #f3f3f3; font-weight: 600; }
+      .sheet input {
+        width: 100%;
+        border: 0;
+        padding: 8px 10px;
+        font: inherit;
+        background: transparent;
+        outline: none;
+      }
+      .pdf-page {
+        background: #f5f5f5;
+        border: 1px solid #e8e8e8;
+        min-height: 280px;
+        padding: 28px 32px;
+        font-size: 13px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        color: #333;
+      }
+      .pdf-frame { width: 100%; height: 360px; border: 0; background: #525659; }
+      .img-view {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 260px;
+        background: #f5f5f5;
+        border-radius: 4px;
+      }
+      .img-view img { max-width: 100%; max-height: 360px; display: block; }
+      .viewer-bar {
+        display: flex;
+        justify-content: center;
+        gap: 28px;
+        padding: 12px 18px 20px;
+      }
+
+      @media (max-width: 560px) {
+        .upload-row { grid-template-columns: 1fr; }
+        .hit-line { grid-template-columns: 1fr; gap: 2px; }
+      }
+
+      .demo-row { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">问答助手</div>
+        <div class="topbar-sub">旧版白底弹窗 · 支持单文件 / 多文件上传</div>
+      </header>
+      <main class="chat" id="chat"></main>
+      <footer class="composer">
+        <div class="starters">
+          <button type="button" data-fill="帮我总结这份材料的要点">帮我总结这份材料的要点</button>
+          <button type="button" data-fill="对比这几份文件的差异">对比这几份文件的差异</button>
+          <button type="button" data-fill="这份文档里有哪些待办事项">这份文档里有哪些待办事项</button>
+        </div>
+        <div class="composer-box">
+          <button class="icon-btn" id="uploadBtn" type="button" title="上传文件">+</button>
+          <input id="fileInput" type="file" multiple hidden />
+          <textarea id="question" rows="1" placeholder="输入问题，或上传文件后提问"></textarea>
+          <button class="send-btn" id="sendBtn" type="button">发送</button>
+        </div>
+        <p class="hint">此页为保留的旧版弹窗。可同时选择多个文件。点 Word / 表格可查看并修改，PDF 与图片仅预览。</p>
+        <div class="demo-row">
+          <button type="button" id="demoSingle">演示：单文件命中</button>
+          <button type="button" id="demoMulti">演示：多文件命中</button>
+        </div>
+      </footer>
+    </div>
+
+    <div class="modal-mask" id="review" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <button class="modal-close" id="closeBtn" aria-label="关闭">×</button>
+        <div class="modal-header">
+          <span class="warn-icon" aria-hidden="true">!</span>
+          <h2 class="modal-title">检测到疑似敏感信息</h2>
+        </div>
+        <p class="modal-lead" id="modalLead"></p>
+        <p class="section-title">已上传文件</p>
+        <div class="upload-row" id="uploadRow"></div>
+        <details class="detail-block" open>
+          <summary>疑似敏感信息明细</summary>
+          <div class="detail-list" id="detailList"></div>
+        </details>
+        <p class="policy-text">
+          为保障数据安全与合规使用，根据《中国民生银行数据安全管理办法（2024 年修订）》及《数据分类分级管理办法（试行）》要求，平台禁止存储以下类型信息：
+        </p>
+        <ul class="policy-list">
+          <li>密码、密钥、令牌等权限类信息</li>
+          <li>身份证件、联系方式、银行账号等隐私类信息</li>
+        </ul>
+        <div class="modal-actions">
+          <button class="btn-primary" type="button" id="confirmBtn">我确认上传内容不涉及敏感信息</button>
+          <button class="btn-text" type="button" id="reviseBtn">存在敏感信息，返回修改</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="viewer" id="viewer">
+      <div class="viewer-card">
+        <div class="viewer-head">
+          <h3 id="viewerTitle">查看文件</h3>
+          <button class="modal-close" id="viewerX" aria-label="关闭" style="position:static">×</button>
+        </div>
+        <div class="viewer-body" id="viewerBody"></div>
+        <div class="viewer-bar">
+          <button class="btn-primary" type="button" id="viewerSave">保存修改</button>
+          <button class="btn-text" type="button" id="viewerClose">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const PATTERNS = [
+        { label: "联系方式", regex: /1[3-9]\d{9}/g },
+        { label: "身份证", regex: /\b\d{17}[\dXx]\b/g },
+        { label: "银行卡", regex: /\b\d{16,19}\b/g },
+        { label: "地址", regex: /(地址[:：]?\s*)?[\u4e00-\u9fa5]{2,}(省|市|区|县|路|街|号).{0,40}/g },
+        { label: "网址", regex: /(https?:\/\/|www\.)[\w.-]+\.[a-z]{2,}(?:\/[\w./?%&=-]*)?/gi },
+        { label: "密钥", regex: /(password|passwd|secret|token|api[_-]?key|密钥|密码|令牌)[:：=\s]+\S+/gi },
+        { label: "邮箱", regex: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g },
+      ];
+      const KEYWORDS = ["密码", "密钥", "令牌", "身份证", "银行卡", "账号", "手机号", "联系方式"];
+
+      const DEMO = {
+        minutes: `会议主题：安联项目沟通会
+时间：2024-09-01 14:00
+地点：陆家嘴会议室
+
+纪要正文：
+请将纸质材料寄送至如下地址。
+地址:www.allianz.com.cn 上海市浦东新区陆家嘴环路1366号1903
+
+待办：会后同步合同扫描件。`,
+        api: `接口说明
+环境：预发
+负责人手机 13912345678
+
+鉴权方式：
+项目接口密钥: token=abc123secret
+
+调用示例：
+GET /v1/health`,
+        bookRows: [
+          ["姓名", "部门", "联系方式", "邮箱"],
+          ["张三", "产品", "13800138000", "zhangsan@example.com"],
+          ["李四", "研发", "13700001111", "lisi@example.com"],
+        ],
+        pdf: `项目合同（摘录）
+编号：HT-2024-091
+签署地址：上海市浦东新区陆家嘴环路1366号1903
+联系方式：13912345678
+
+本页仅作 PDF 预览演示。`,
+        photo: "工牌照片识别结果\n姓名：张三\n联系方式：13800138000\n邮箱：zhangsan@example.com",
+      };
+
+      const PHOTO_SVG =
+        "data:image/svg+xml," +
+        encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300">' +
+            '<rect fill="#e8eef6" width="480" height="300"/>' +
+            '<rect fill="#c5d4ea" x="170" y="50" width="140" height="160" rx="8"/>' +
+            '<circle fill="#8aa4c8" cx="240" cy="110" r="36"/>' +
+            '<text x="240" y="250" text-anchor="middle" font-size="16" fill="#445">工牌照片.png</text>' +
+          "</svg>"
+        );
+
+      const chat = document.getElementById("chat");
+      const review = document.getElementById("review");
+      const modalLead = document.getElementById("modalLead");
+      const uploadRow = document.getElementById("uploadRow");
+      const detailList = document.getElementById("detailList");
+      const fileInput = document.getElementById("fileInput");
+      const question = document.getElementById("question");
+
+      const viewer = document.getElementById("viewer");
+      const viewerTitle = document.getElementById("viewerTitle");
+      const viewerBody = document.getElementById("viewerBody");
+      const viewerSave = document.getElementById("viewerSave");
+
+      let pendingFiles = [];
+      let currentFindings = [];
+      let viewingId = null;
+
+      addBubble("assistant", "您好，我是问答助手。您可以上传单个或多个文件提问。若文件中包含疑似敏感信息，将弹出全局提示。");
+
+      function addBubble(role, text) {
+        const el = document.createElement("div");
+        el.className = "bubble " + role;
+        el.textContent = text;
+        chat.appendChild(el);
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      function extractSnippets(text) {
+        if (!text) return [];
+        const found = new Set();
+        for (const { label, regex } of PATTERNS) {
+          const cloned = new RegExp(regex.source, regex.flags);
+          const matches = text.match(cloned);
+          if (matches) {
+            for (const m of matches) found.add(label + ":" + m.trim());
+          }
+        }
+        for (const word of KEYWORDS) {
+          if (text.includes(word)) {
+            const idx = text.indexOf(word);
+            const start = Math.max(0, idx - 8);
+            const end = Math.min(text.length, idx + word.length + 24);
+            found.add(text.slice(start, end).replace(/\s+/g, " ").trim());
+          }
+        }
+        return Array.from(found).slice(0, 8);
+      }
+
+      function readFileText(file) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = () => resolve("");
+          reader.readAsText(file);
+        });
+      }
+
+      function kindOf(name) {
+        const ext = String(name).split(".").pop().toLowerCase();
+        if (["doc", "docx"].includes(ext)) return "word";
+        if (["xls", "xlsx", "csv"].includes(ext)) return "table";
+        if (ext === "pdf") return "pdf";
+        if (["png", "jpg", "jpeg", "gif", "webp", "bmp"].includes(ext)) return "image";
+        return "word";
+      }
+
+      function typeLabel(kind) {
+        return { word: "Word 文档", table: "Excel 表格", pdf: "PDF 文档", image: "图片" }[kind] || "文件";
+      }
+
+      function iconHtml(kind) {
+        if (kind === "table") return '<span class="xls-ico">X</span>';
+        if (kind === "pdf") return '<span class="pdf-ico">PDF</span>';
+        if (kind === "image") return '<span class="img-ico">图</span>';
+        return '<span class="word-ico">W</span>';
+      }
+
+      function tableText(rows) {
+        return (rows || []).map((r) => r.join(",")).join("\n");
+      }
+
+      function parseCsv(text) {
+        return String(text).split(/\r?\n/).filter(Boolean).map((line) => line.split(","));
+      }
+
+      async function scanFiles(fileList) {
+        const files = Array.from(fileList);
+        const hits = [];
+        for (const file of files) {
+          const kind = kindOf(file.name);
+          const item = { name: file.name, kind, size: file.size, snippets: [], content: "", rows: null, blobUrl: null };
+          if (kind === "image" || kind === "pdf") {
+            item.blobUrl = URL.createObjectURL(file);
+            item.content = kind === "pdf" ? await readFileText(file) : file.name;
+          } else if (kind === "table") {
+            item.content = await readFileText(file);
+            item.rows = parseCsv(item.content);
+          } else {
+            item.content = await readFileText(file);
+          }
+          item.snippets = extractSnippets(kind === "table" ? tableText(item.rows) : item.content);
+          if (item.snippets.length) hits.push(item);
+        }
+        return { files, hits };
+      }
+
+      function openModal(findings) {
+        currentFindings = findings.map((item, index) => ({
+          id: item.id || item.name + "-" + index,
+          name: item.name,
+          kind: item.kind || kindOf(item.name),
+          snippets: item.snippets,
+          size: item.size || 0,
+          content: item.content || "",
+          rows: item.rows ? item.rows.map((r) => r.slice()) : null,
+          blobUrl: item.blobUrl || "",
+        }));
+        renderModal();
+        review.classList.add("open");
+      }
+
+      function snippetPairs(snippets) {
+        const rows = [];
+        const seen = new Set();
+        for (const raw of snippets) {
+          const text = String(raw);
+          const label = snippetLabel(text) || "敏感信息";
+          let value = text;
+          if (text.startsWith(label + ":") || text.startsWith(label + "：")) {
+            value = text.slice(label.length + 1);
+          }
+          const key = label + "\0" + value;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          rows.push({ label, value });
+        }
+        return rows;
+      }
+
+      function uniqueLabels(snippets) {
+        const labels = [];
+        for (const raw of snippets) {
+          const label = snippetLabel(raw);
+          if (label && !labels.includes(label)) labels.push(label);
+        }
+        return labels;
+      }
+
+      function snippetLabel(raw) {
+        const text = String(raw);
+        const colon = text.indexOf(":");
+        if (colon > 0 && colon < 12) return text.slice(0, colon);
+        const words = KEYWORDS.slice().sort((a, b) => b.length - a.length);
+        return words.find((word) => text.includes(word)) || "";
+      }
+
+      function formatSize(item) {
+        const kind = typeLabel(item.kind || kindOf(item.name));
+        const n = item.size || 0;
+        if (!n) return kind;
+        if (n < 1024) return n + " B · " + kind;
+        return (n / 1024).toFixed(1) + " KB · " + kind;
+      }
+
+      function renderModal() {
+        const findings = currentFindings;
+        const n = findings.length;
+        if (n === 0) {
+          closeViewer();
+          closeModal();
+          if (pendingFiles.length) attachFiles(pendingFiles);
+          else addBubble("assistant", "已从本次上传中去除全部命中文件。");
+          return;
+        }
+        modalLead.innerHTML =
+          "系统检测到您上传的 <span class=\"hit-count\">" + n + "</span> 个文件中包含疑似敏感信息，请您修改后重新上传。";
+        uploadRow.innerHTML = findings.map((item) => (
+          '<button type="button" class="upload-chip" data-open="' + escapeHtml(item.id) + '">' +
+            iconHtml(item.kind) +
+            '<div class="chip-meta">' +
+              '<div class="chip-name">' + escapeHtml(item.name) + "</div>" +
+              '<div class="chip-sub">' + escapeHtml(formatSize(item)) + "</div>" +
+            "</div>" +
+            '<span class="remove-file" data-remove="' + escapeHtml(item.id) + '" role="button" aria-label="去除此文件">×</span>' +
+          "</button>"
+        )).join("");
+        detailList.innerHTML = findings.map((item) => {
+          const lines = snippetPairs(item.snippets).map((row) =>
+            '<div class="hit-line"><span class="snippet-label">' + escapeHtml(row.label) + "</span><span class=\"hit-value\">" + escapeHtml(row.value) + "</span></div>"
+          ).join("");
+          return (
+            '<div class="detail-file">' +
+              '<div class="hit-file">' + escapeHtml(item.name) + "</div>" +
+              '<div class="hit-box">' + lines + "</div>" +
+            "</div>"
+          );
+        }).join("");
+      }
+
+      function removeFinding(id) {
+        const target = currentFindings.find((item) => item.id === id);
+        currentFindings = currentFindings.filter((item) => item.id !== id);
+        if (target) {
+          let removed = false;
+          pendingFiles = pendingFiles.filter((file) => {
+            if (!removed && file.name === target.name) {
+              removed = true;
+              return false;
+            }
+            return true;
+          });
+        }
+        renderModal();
+      }
+
+      function closeModal() {
+        closeViewer();
+        review.classList.remove("open");
+      }
+
+      function closeViewer() {
+        viewer.classList.remove("open");
+        viewingId = null;
+      }
+
+      function openViewer(id) {
+        const item = currentFindings.find((f) => f.id === id);
+        if (!item) return;
+        viewingId = id;
+        viewerTitle.textContent = item.name;
+        const canEdit = item.kind === "word" || item.kind === "table";
+        viewerSave.style.display = canEdit ? "" : "none";
+        if (item.kind === "word") {
+          viewerBody.innerHTML = '<textarea id="wordEditor"></textarea>';
+          document.getElementById("wordEditor").value = item.content;
+        } else if (item.kind === "table") {
+          const rows = item.rows && item.rows.length ? item.rows : [["列1"]];
+          viewerBody.innerHTML =
+            '<table class="sheet"><tbody>' +
+            rows.map((row, ri) =>
+              "<tr>" +
+              row.map((cell, ci) => {
+                const tag = ri === 0 ? "th" : "td";
+                return "<" + tag + '><input data-r="' + ri + '" data-c="' + ci + '" value="' + escapeHtml(cell) + '"></' + tag + ">";
+              }).join("") +
+              "</tr>"
+            ).join("") +
+            "</tbody></table>";
+        } else if (item.kind === "pdf") {
+          if (item.blobUrl) {
+            viewerBody.innerHTML = '<iframe class="pdf-frame" title="PDF 预览" src="' + item.blobUrl + '"></iframe>';
+          } else {
+            viewerBody.innerHTML = '<div class="pdf-page">' + escapeHtml(item.content) + "</div>";
+          }
+        } else {
+          const src = item.blobUrl || PHOTO_SVG;
+          viewerBody.innerHTML = '<div class="img-view"><img alt="" src="' + src + '"></div>';
+        }
+        viewer.classList.add("open");
+      }
+
+      function saveViewer() {
+        const item = currentFindings.find((f) => f.id === viewingId);
+        if (!item) { closeViewer(); return; }
+        if (item.kind === "word") {
+          const ta = document.getElementById("wordEditor");
+          item.content = ta ? ta.value : item.content;
+          item.snippets = extractSnippets(item.content);
+        } else if (item.kind === "table") {
+          const inputs = viewerBody.querySelectorAll("input");
+          inputs.forEach((el) => {
+            const r = Number(el.dataset.r);
+            const c = Number(el.dataset.c);
+            if (!item.rows[r]) item.rows[r] = [];
+            item.rows[r][c] = el.value;
+          });
+          item.content = tableText(item.rows);
+          item.snippets = extractSnippets(item.content);
+        }
+        closeViewer();
+        if (!item.snippets.length) {
+          removeFinding(item.id);
+          addBubble("assistant", item.name + " 已修改，当前未再检出敏感信息。");
+          return;
+        }
+        renderModal();
+      }
+
+      function attachFiles(files) {
+        const names = files.map((f) => f.name).join("、");
+        addBubble("assistant", "已接收 " + files.length + " 个文件：" + names + "。您可以继续提问。");
+        pendingFiles = [];
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      document.getElementById("uploadBtn").onclick = () => fileInput.click();
+
+      fileInput.onchange = async (e) => {
+        const list = e.target.files;
+        if (!list.length) return;
+        const { files, hits } = await scanFiles(list);
+        e.target.value = "";
+        if (hits.length) {
+          pendingFiles = files;
+          openModal(hits);
+          return;
+        }
+        attachFiles(files);
+      };
+
+      document.getElementById("confirmBtn").onclick = () => {
+        closeModal();
+        if (pendingFiles.length) attachFiles(pendingFiles);
+        else addBubble("assistant", "已确认本次上传内容不涉及敏感信息。");
+      };
+
+      function revise() {
+        closeModal();
+        pendingFiles = [];
+        addBubble("assistant", "已取消本次上传。请修改文件中的敏感信息后重新上传。");
+      }
+
+      document.getElementById("reviseBtn").onclick = revise;
+      document.getElementById("closeBtn").onclick = revise;
+
+      review.addEventListener("click", (e) => {
+        const rm = e.target.closest("[data-remove]");
+        if (rm) {
+          e.preventDefault();
+          e.stopPropagation();
+          removeFinding(rm.getAttribute("data-remove"));
+          return;
+        }
+        const open = e.target.closest("[data-open]");
+        if (open) openViewer(open.getAttribute("data-open"));
+      });
+
+      document.getElementById("viewerX").onclick = closeViewer;
+      document.getElementById("viewerClose").onclick = closeViewer;
+      document.getElementById("viewerSave").onclick = saveViewer;
+
+      document.getElementById("sendBtn").onclick = send;
+      question.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          send();
+        }
+      });
+
+      function send() {
+        const text = question.value.trim();
+        if (!text) return;
+        question.value = "";
+        addBubble("user", text);
+        addBubble("assistant", "这是演示环境。请先上传文件；若命中敏感规则，会进入全文审阅台。");
+      }
+
+      document.querySelectorAll(".starters button").forEach((btn) => {
+        btn.onclick = () => { question.value = btn.dataset.fill; question.focus(); };
+      });
+
+      document.getElementById("demoSingle").onclick = () => {
+        pendingFiles = [];
+        openModal([{
+          name: "会议纪要.docx",
+          kind: "word",
+          snippets: extractSnippets(DEMO.minutes),
+          content: DEMO.minutes,
+          size: 18432,
+        }]);
+      };
+
+      function showMultiDemo() {
+        pendingFiles = [];
+        openModal([
+          {
+            name: "会议纪要.docx",
+            kind: "word",
+            snippets: extractSnippets(DEMO.minutes),
+            content: DEMO.minutes,
+            size: 18432,
+          },
+          {
+            name: "员工通讯录.xlsx",
+            kind: "table",
+            rows: DEMO.bookRows,
+            snippets: extractSnippets(tableText(DEMO.bookRows)),
+            content: tableText(DEMO.bookRows),
+            size: 25600,
+          },
+          {
+            name: "项目合同.pdf",
+            kind: "pdf",
+            snippets: extractSnippets(DEMO.pdf),
+            content: DEMO.pdf,
+            size: 102400,
+          },
+          {
+            name: "工牌照片.png",
+            kind: "image",
+            snippets: extractSnippets(DEMO.photo),
+            content: DEMO.photo,
+            blobUrl: PHOTO_SVG,
+            size: 81920,
+          },
+        ]);
+      }
+
+      document.getElementById("demoMulti").onclick = showMultiDemo;
+    </script>
+  </body>
+</html>
