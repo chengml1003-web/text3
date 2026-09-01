@@ -229,6 +229,13 @@
       }
       .detail-block[open] summary::before { transform: rotate(0deg); }
 
+      .upload-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
       .upload-chip {
         position: relative;
         display: flex;
@@ -237,14 +244,17 @@
         border: 1px solid #ececec;
         background: #fafafa;
         border-radius: 8px;
-        padding: 10px 28px 10px 12px;
+        padding: 10px 12px;
         width: 100%;
-        max-width: 360px;
         text-align: left;
         cursor: pointer;
         font: inherit;
       }
       .upload-chip:hover { border-color: #c5d4ea; background: #f7faff; }
+      .upload-chip--modal {
+        padding: 12px 86px 12px 12px;
+        min-height: 52px;
+      }
 
       .remove-file {
         position: absolute;
@@ -262,6 +272,29 @@
         font-family: inherit;
       }
       .remove-file:hover { color: #8c8c8c; }
+      .remove-file-btn {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        margin: 0;
+        border: 1px solid #ececec;
+        background: #fff;
+        color: #8a8a8a;
+        border-radius: 999px;
+        padding: 0 8px;
+        height: 22px;
+        font-size: 11px;
+        line-height: 20px;
+        cursor: pointer;
+        white-space: nowrap;
+        font-family: inherit;
+        box-shadow: 0 1px 2px rgba(20, 32, 51, 0.04);
+      }
+      .remove-file-btn:hover {
+        border-color: #d7e4f5;
+        color: #3a6fb0;
+        background: #f7faff;
+      }
 
       .chip-meta { min-width: 0; flex: 1; }
       .chip-name {
@@ -294,9 +327,6 @@
         align-items: center;
         gap: 12px;
         flex-wrap: wrap;
-      }
-      .detail-file-head .upload-chip {
-        flex: 1 1 240px;
       }
 
       .word-ico, .xls-ico, .pdf-ico, .img-ico {
@@ -478,7 +508,7 @@
       }
 
       @media (max-width: 560px) {
-        .upload-chip { max-width: none; }
+        .upload-row { grid-template-columns: 1fr; }
       }
 
       .demo-row { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
@@ -519,6 +549,8 @@
           <h2 class="modal-title">检测到疑似敏感信息</h2>
         </div>
         <p class="modal-lead" id="modalLead"></p>
+        <p class="section-title">敏感文件</p>
+        <div class="upload-row" id="uploadRow"></div>
         <details class="detail-block" open>
           <summary>疑似敏感信息明细</summary>
           <div class="detail-list" id="detailList"></div>
@@ -599,6 +631,7 @@ GET /v1/health`,
       const review = document.getElementById("review");
       const modalLead = document.getElementById("modalLead");
       const detailList = document.getElementById("detailList");
+      const uploadRow = document.getElementById("uploadRow");
       const attachedRow = document.getElementById("attachedRow");
       const fileInput = document.getElementById("fileInput");
       const question = document.getElementById("question");
@@ -710,17 +743,23 @@ GET /v1/health`,
         return items;
       }
 
-      function fileChipHtml(item) {
-        return (
-          '<button type="button" class="upload-chip" data-open="' + escapeHtml(item.id) + '">' +
-            iconHtml(item.kind) +
-            '<div class="chip-meta">' +
-              '<div class="chip-name">' + escapeHtml(item.name) + "</div>" +
-              '<div class="chip-sub">' + escapeHtml(formatSize(item)) + "</div>" +
-            "</div>" +
-            '<span class="remove-file" data-remove="' + escapeHtml(item.id) + '" role="button" aria-label="去除此文件">×</span>' +
-          "</button>"
-        );
+      function fileChipHtml(item, variant) {
+        const remove =
+          variant === "modal"
+            ? '<button type="button" class="remove-file-btn" data-remove="' + escapeHtml(item.id) + '">移除该文件</button>'
+            : '<span class="remove-file" data-remove="' + escapeHtml(item.id) + '" role="button" aria-label="去除此文件">×</span>';
+        const open = 'data-open="' + escapeHtml(item.id) + '"';
+        const inner =
+          iconHtml(item.kind) +
+          '<div class="chip-meta">' +
+            '<div class="chip-name">' + escapeHtml(item.name) + "</div>" +
+            '<div class="chip-sub">' + escapeHtml(formatSize(item)) + "</div>" +
+          "</div>" +
+          remove;
+        if (variant === "modal") {
+          return '<div class="upload-chip upload-chip--modal" ' + open + ' role="button" tabindex="0">' + inner + "</div>";
+        }
+        return '<button type="button" class="upload-chip" ' + open + ">" + inner + "</button>";
       }
 
       function renderAttached() {
@@ -802,19 +841,15 @@ GET /v1/health`,
           else addBubble("assistant", "已从本次上传中去除全部命中文件。");
           return;
         }
-        modalLead.innerHTML =
-          "系统检测到您上传的 <span class=\"hit-count\">" + n + "</span> 个文件中包含疑似敏感信息，请您修改后重新上传。";
+        modalLead.textContent = "系统检测到您上传的文件中包含疑似敏感信息，请您修改后重新上传。";
+        uploadRow.innerHTML = findings.map((item) => fileChipHtml(item, "modal")).join("");
         detailList.innerHTML = findings.map((item) => {
           const lines = snippetPairs(item.snippets).map((row) =>
             '<div class="hit-line"><span class="snippet-label">' + escapeHtml(row.label) + "：</span><span class=\"hit-value\">" + escapeHtml(row.value) + "</span></div>"
           ).join("");
-          const chip = fileChipHtml(item);
           return (
             '<div class="detail-file">' +
-              '<div class="detail-file-head">' +
-                '<div class="hit-file">' + escapeHtml(item.name) + "</div>" +
-                chip +
-              "</div>" +
+              '<div class="hit-file">' + escapeHtml(item.name) + "</div>" +
               '<div class="hit-box">' + (lines || "<span class=\"hit-value\">暂无明细</span>") + "</div>" +
             "</div>"
           );
