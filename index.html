@@ -10,6 +10,7 @@
         --ink: #142033;
         --muted: #6b7385;
         --line: #e6ebf3;
+        --red: #e23c3c;
       }
 
       * { box-sizing: border-box; }
@@ -113,241 +114,317 @@
         cursor: pointer;
       }
 
+      .hit-count { color: #e23c3c; font-weight: 700; }
+      .snippet-label { color: #e23c3c; font-weight: 700; }
+
       .modal-mask {
         position: fixed;
         inset: 0;
-        z-index: 1000;
+        background: rgba(0, 0, 0, 0.45);
         display: none;
         align-items: center;
         justify-content: center;
+        z-index: 1000;
         padding: 24px;
-        background: rgba(15, 23, 42, 0.55);
       }
       .modal-mask.open { display: flex; }
 
-      .modal-shell {
-        display: flex;
-        flex-direction: column;
-        width: min(980px, 100%);
-        height: min(82vh, 720px);
+      .modal-card {
+        position: relative;
+        width: 800px;
+        max-width: calc(100% - 48px);
+        max-height: min(86vh, 780px);
+        overflow: auto;
         background: #fff;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
+        border-radius: 8px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+        padding: 32px 32px 24px;
       }
 
-      .modal-head {
-        flex: 0 0 auto;
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 18px 20px 14px;
-        background: #0f172a;
-        color: #f8fafc;
-      }
-      .warn-ico {
-        flex: 0 0 40px;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: #f59e0b;
-        color: #0f172a;
-        display: grid;
-        place-items: center;
-        font-size: 22px;
-        font-weight: 800;
-        line-height: 1;
-      }
-      .head-copy { flex: 1; min-width: 0; }
-      .head-kicker {
-        margin: 0 0 4px;
-        font-size: 12px;
-        color: #fbbf24;
-        font-weight: 600;
-      }
-      .modal-title {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 700;
-        line-height: 1.3;
-      }
-      .modal-lead {
-        margin: 8px 0 0;
-        font-size: 13px;
-        line-height: 1.6;
-        color: #cbd5e1;
-      }
-      .hit-count {
-        display: inline-block;
-        padding: 0 7px;
-        margin: 0 2px;
-        border-radius: 999px;
-        background: rgba(245, 158, 11, 0.22);
-        color: #fde68a;
-        font-weight: 700;
-      }
       .modal-close {
-        flex: 0 0 40px;
-        width: 40px;
-        height: 40px;
+        position: absolute;
+        top: 12px;
+        right: 14px;
         border: 0;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        font-size: 22px;
+        background: transparent;
+        color: #b0b0b0;
+        font-size: 26px;
+        line-height: 1;
         cursor: pointer;
       }
-      .modal-close:hover { background: rgba(255, 255, 255, 0.18); }
 
-      .file-rail {
-        flex: 0 0 auto;
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 10px;
-        padding: 12px 16px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        background: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
-      }
-
-      .file-tab {
-        flex: 0 0 220px;
+      .modal-header {
         display: flex;
         align-items: center;
-        gap: 8px;
-        min-height: 52px;
-        padding: 8px;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        background: #fff;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .warn-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #f5c518;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .modal-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #111;
+      }
+
+      .modal-lead {
+        margin: 0 0 18px;
+        font-size: 14px;
+        line-height: 1.7;
+        color: #333;
+      }
+
+      .section-title {
+        margin: 0 0 8px;
+        font-size: 13px;
+        color: #8a8a8a;
+        font-weight: 500;
+      }
+
+      .detail-block { margin-bottom: 16px; }
+      .detail-block summary {
         cursor: pointer;
+        font-size: 14px;
+        color: #333;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .detail-block summary::-webkit-details-marker { display: none; }
+      .detail-block summary::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 6px solid #8c8c8c;
+        transform: rotate(-90deg);
+      }
+      .detail-block[open] summary::before { transform: rotate(0deg); }
+
+      .upload-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .upload-chip {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid #ececec;
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 10px 28px 10px 12px;
+        width: 100%;
         text-align: left;
+        cursor: pointer;
         font: inherit;
-        color: inherit;
       }
-      .file-tab.active {
-        border-color: #0f172a;
-        box-shadow: 0 0 0 1px #0f172a;
+      .upload-chip:hover { border-color: #c5d4ea; background: #f7faff; }
+
+      .remove-file {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 22px;
+        height: 22px;
+        border: 0;
+        background: transparent;
+        color: #b0b0b0;
+        font-size: 18px;
+        line-height: 22px;
+        cursor: pointer;
+        padding: 0;
+        font-family: inherit;
       }
-      .file-tab .chip-meta { min-width: 0; flex: 1; }
+      .remove-file:hover { color: #8c8c8c; }
+
+      .chip-meta { min-width: 0; flex: 1; }
       .chip-name {
         font-size: 13px;
-        font-weight: 650;
+        color: #222;
+        font-weight: 600;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .chip-sub {
-        margin-top: 2px;
-        font-size: 11px;
-        color: #64748b;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+      .chip-sub { font-size: 11px; color: #999; margin-top: 2px; }
+
+      .detail-list {
+        margin-top: 10px;
+        max-height: 240px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding-right: 6px;
       }
-      .remove-file {
-        flex: 0 0 28px;
-        width: 28px;
-        height: 28px;
-        border: 0;
-        border-radius: 8px;
-        background: transparent;
-        color: #64748b;
-        font-size: 16px;
-        cursor: pointer;
+      .detail-file {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
       }
-      .remove-file:hover { background: #fee2e2; color: #b91c1c; }
 
       .word-ico, .xls-ico, .pdf-ico, .img-ico {
-        flex: 0 0 30px;
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
         color: #fff;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 800;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
       }
-      .word-ico { background: #2b579a; }
+      .word-ico { background: #2b579a; font-size: 12px; }
       .xls-ico { background: #1d6f42; }
-      .pdf-ico { background: #c43b2c; font-size: 8px; }
-      .img-ico { background: #6d4c9a; }
+      .pdf-ico { background: #d32f2f; font-size: 9px; }
+      .img-ico { background: #7b5ea7; font-size: 12px; }
 
-      .workspace {
-        flex: 1 1 auto;
-        min-height: 0;
-        display: flex;
-        gap: 12px;
-        padding: 12px 16px;
-        background: #eef2f7;
+      .detail-list::-webkit-scrollbar { width: 6px; }
+      .detail-list::-webkit-scrollbar-track { background: #eeeeee; border-radius: 3px; }
+      .detail-list::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 3px; }
+
+      .hit-file {
+        display: block;
+        margin: 0;
+        font-size: 13px;
+        color: #222;
+        font-weight: 700;
+        line-height: 1.4;
       }
 
-      .preview-pane,
-      .hits-pane {
-        min-width: 0;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
+      .hit-box {
+        background: #f5f5f5;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 13px;
+        line-height: 1.7;
+        color: #333;
       }
-      .preview-pane { flex: 1.4 1 0; }
-      .hits-pane { flex: 1 1 0; max-width: 340px; }
+      .hit-line {
+        display: block;
+      }
+      .hit-line + .hit-line { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e6e6e6; }
+      .snippet-label { color: #e23c3c; font-weight: 700; }
+      .hit-value { word-break: break-all; color: #444; font-weight: 400; }
 
-      .pane-bar {
-        flex: 0 0 auto;
+      .policy-text {
+        margin: 0 0 6px;
+        font-size: 12px;
+        line-height: 1.8;
+        color: #888;
+        font-weight: 400;
+      }
+      .law-name { font-weight: 700; color: #666; }
+      .policy-list {
+        margin: 0 0 20px;
+        padding-left: 18px;
+        color: #888;
+        font-size: 12px;
+        line-height: 1.9;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+
+      .btn-primary {
+        border: 0;
+        background: var(--blue);
+        color: #fff;
+        height: 36px;
+        padding: 0 18px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .btn-primary:hover { background: #256fd0; }
+      .btn-text {
+        border: 0;
+        background: transparent;
+        color: #4a4a4a;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .btn-text:hover { color: #111; }
+
+      .viewer {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1100;
+        background: rgba(0, 0, 0, 0.45);
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .viewer.open { display: flex; }
+      .viewer-card {
+        width: min(640px, 100%);
+        max-height: 86vh;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        overflow: hidden;
+      }
+      .viewer-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
-        margin-bottom: 8px;
+        padding: 16px 20px 10px;
       }
-      .pane-bar h3 {
-        margin: 0;
-        font-size: 13px;
-        font-weight: 650;
-        color: #334155;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .mode-pill {
-        flex: 0 0 auto;
-        font-size: 11px;
-        font-weight: 600;
-        padding: 3px 8px;
-        border-radius: 999px;
-        background: #dbeafe;
-        color: #1d4ed8;
-      }
-      .mode-pill.readonly {
-        background: #e2e8f0;
-        color: #475569;
-      }
-
-      .preview-card {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-      }
-      .preview-card textarea {
-        display: block;
+      .viewer-head h3 { margin: 0; font-size: 16px; }
+      .viewer-body { padding: 0 20px 8px; overflow: auto; min-height: 220px; }
+      .viewer-body textarea {
         width: 100%;
-        height: 100%;
-        min-height: 180px;
+        min-height: 240px;
         border: 0;
         outline: none;
         resize: none;
-        padding: 14px;
+        background: #f5f5f5;
+        border-radius: 4px;
+        padding: 12px 14px;
         font: 13px/1.7 inherit;
       }
-      .sheet { width: 100%; border-collapse: collapse; font-size: 13px; }
-      .sheet th, .sheet td { border: 1px solid #e2e8f0; padding: 0; }
-      .sheet th { background: #f1f5f9; }
+      .sheet {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .sheet th, .sheet td {
+        border: 1px solid #e0e0e0;
+        padding: 0;
+      }
+      .sheet th { background: #f3f3f3; font-weight: 600; }
       .sheet input {
         width: 100%;
         border: 0;
@@ -357,118 +434,37 @@
         outline: none;
       }
       .pdf-page {
-        padding: 20px 24px;
+        background: #f5f5f5;
+        border: 1px solid #e8e8e8;
+        min-height: 280px;
+        padding: 28px 32px;
         font-size: 13px;
         line-height: 1.8;
         white-space: pre-wrap;
+        color: #333;
       }
-      .pdf-frame { width: 100%; height: 100%; min-height: 220px; border: 0; background: #334155; }
+      .pdf-frame { width: 100%; height: 360px; border: 0; background: #525659; }
       .img-view {
         display: flex;
-        align-items: center;
         justify-content: center;
-        min-height: 180px;
-        padding: 12px;
+        align-items: center;
+        min-height: 260px;
+        background: #f5f5f5;
+        border-radius: 4px;
       }
-      .img-view img { max-width: 100%; max-height: 260px; }
-
-      .save-inline {
-        flex: 0 0 auto;
-        margin-top: 8px;
-        align-self: flex-start;
-        min-height: 36px;
-        padding: 0 12px;
-        border: 0;
-        border-radius: 8px;
-        background: #0f172a;
-        color: #fff;
-        font: 600 13px inherit;
-        cursor: pointer;
-      }
-      .save-inline[hidden] { display: none !important; }
-
-      .hits-card {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
-        padding: 12px;
-        background: #fff7ed;
-        border: 1px solid #fed7aa;
-        border-radius: 12px;
-      }
-      .hits-card h4 {
-        margin: 0 0 8px;
-        font-size: 12px;
-        color: #9a3412;
-      }
-      .stamp {
-        margin-bottom: 8px;
-        padding: 8px 10px;
-        background: #fff;
-        border: 1px dashed #fdba74;
-        border-radius: 8px;
-      }
-      .stamp:last-child { margin-bottom: 0; }
-      .stamp-label { display: block; font-size: 11px; font-weight: 700; color: #c2410c; }
-      .stamp-value {
-        display: block;
-        margin-top: 4px;
-        font-size: 13px;
-        line-height: 1.5;
-        overflow-wrap: anywhere;
-      }
-
-      .policy-bar {
-        flex: 0 0 auto;
-        padding: 10px 20px;
-        font-size: 12px;
-        line-height: 1.6;
-        color: #64748b;
-        border-top: 1px solid #e2e8f0;
-        background: #fff;
-      }
-      .policy-bar p { margin: 0 0 4px; }
-      .policy-bar ul { margin: 0; padding-left: 18px; }
-
-      .modal-foot {
-        flex: 0 0 auto;
+      .img-view img { max-width: 100%; max-height: 360px; display: block; }
+      .viewer-bar {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 12px 16px 16px;
-        border-top: 1px solid #e2e8f0;
-        background: #fff;
-      }
-      .btn-solid, .btn-ghost {
-        min-height: 40px;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font: 600 14px inherit;
-        cursor: pointer;
-      }
-      .btn-solid {
-        border: 0;
-        background: #2563eb;
-        color: #fff;
-      }
-      .btn-solid:hover { background: #1d4ed8; }
-      .btn-ghost {
-        border: 0;
-        background: transparent;
-        color: #334155;
-        text-decoration: underline;
-        text-underline-offset: 3px;
+        justify-content: center;
+        gap: 28px;
+        padding: 12px 18px 20px;
       }
 
-      @media (max-width: 800px) {
-        .modal-shell { height: min(92vh, 820px); }
-        .workspace { flex-direction: column; }
-        .hits-pane { max-width: none; flex: 0 0 160px; }
-        .modal-foot { justify-content: stretch; }
-        .modal-foot button { flex: 1; }
-        .btn-ghost { text-decoration: none; border: 1px solid #cbd5e1; }
+      @media (max-width: 560px) {
+        .upload-row { grid-template-columns: 1fr; }
       }
+
+      .demo-row { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
     </style>
   </head>
   <body>
@@ -486,11 +482,11 @@
         </div>
         <div class="composer-box">
           <button class="icon-btn" id="uploadBtn" type="button" title="上传文件">+</button>
-          <input id="fileInput" type="file" multiple hidden />
+          <input id="fileInput" type="file" multiple hidden accept=".doc,.docx,.xls,.xlsx,.csv,.pdf" />
           <textarea id="question" rows="1" placeholder="输入问题，或上传文件后提问"></textarea>
           <button class="send-btn" id="sendBtn" type="button">发送</button>
         </div>
-        <p class="hint">可同时选择多个文件。弹窗上方点选文件：Word / 表格可查看并修改，PDF 与图片仅预览。</p>
+        <p class="hint">可同时选择多个文件。点 Word / 表格可查看并修改，PDF 仅预览。</p>
         <div class="demo-row">
           <button type="button" id="demoSingle">演示：单文件命中</button>
           <button type="button" id="demoMulti">演示：多文件命中</button>
@@ -498,45 +494,44 @@
       </footer>
     </div>
 
-    <div class="modal-mask" id="review" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal-shell">
-        <header class="modal-head">
-          <span class="warn-ico" aria-hidden="true">!</span>
-          <div class="head-copy">
-            <p class="head-kicker">文件合规扫描</p>
-            <h2 class="modal-title" id="modalTitle">检测到疑似敏感信息</h2>
-            <p class="modal-lead" id="modalLead"></p>
-          </div>
-          <button class="modal-close" id="closeBtn" aria-label="关闭">×</button>
-        </header>
-
-        <div class="file-rail" id="fileRail" role="tablist" aria-label="命中文件"></div>
-
-        <div class="workspace">
-          <section class="preview-pane">
-            <div class="pane-bar">
-              <h3 id="previewTitle">文件内容</h3>
-              <span class="mode-pill" id="modePill">可修改</span>
-            </div>
-            <div class="preview-card" id="previewBody"></div>
-            <button class="save-inline" type="button" id="saveInline">保存当前文件修改</button>
-          </section>
-          <aside class="hits-pane">
-            <div class="hits-card" id="hitsCard"></div>
-          </aside>
+    <div class="modal-mask" id="review" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <button class="modal-close" id="closeBtn" aria-label="关闭">×</button>
+        <div class="modal-header">
+          <span class="warn-icon" aria-hidden="true">!</span>
+          <h2 class="modal-title">检测到疑似敏感信息</h2>
         </div>
-
-        <div class="policy-bar">
-          <p>依据《中国民生银行数据安全管理办法（2024 年修订）》及《数据分类分级管理办法（试行）》，禁止存储：</p>
-          <ul>
-            <li>密码、密钥、令牌等权限类信息</li>
-            <li>证件、联系方式、银行账号等隐私类信息</li>
-          </ul>
+        <p class="modal-lead" id="modalLead"></p>
+        <p class="section-title">已上传文件</p>
+        <div class="upload-row" id="uploadRow"></div>
+        <details class="detail-block" open>
+          <summary>疑似敏感信息明细</summary>
+          <div class="detail-list" id="detailList"></div>
+        </details>
+        <p class="policy-text">
+          为保障数据安全与合规使用，根据<span class="law-name">《中国民生银行数据安全管理办法（2024 年修订）》</span>及<span class="law-name">《数据分类分级管理办法（试行）》</span>要求，平台禁止存储以下类型信息：
+        </p>
+        <ul class="policy-list">
+          <li>密码、密钥、令牌等权限类信息</li>
+          <li>身份证件、联系方式、银行账号等隐私类信息</li>
+        </ul>
+        <div class="modal-actions">
+          <button class="btn-primary" type="button" id="confirmBtn">我确认上传内容不涉及敏感信息</button>
+          <button class="btn-text" type="button" id="reviseBtn">存在敏感信息，返回修改</button>
         </div>
+      </div>
+    </div>
 
-        <div class="modal-foot">
-          <button class="btn-solid" type="button" id="confirmBtn">我确认上传内容不涉及敏感信息</button>
-          <button class="btn-ghost" type="button" id="reviseBtn">存在敏感信息，返回修改</button>
+    <div class="viewer" id="viewer">
+      <div class="viewer-card">
+        <div class="viewer-head">
+          <h3 id="viewerTitle">查看文件</h3>
+          <button class="modal-close" id="viewerX" aria-label="关闭" style="position:static">×</button>
+        </div>
+        <div class="viewer-body" id="viewerBody"></div>
+        <div class="viewer-bar">
+          <button class="btn-primary" type="button" id="viewerSave">保存修改</button>
+          <button class="btn-text" type="button" id="viewerClose">关闭</button>
         </div>
       </div>
     </div>
@@ -563,6 +558,15 @@
 地址:www.allianz.com.cn 上海市浦东新区陆家嘴环路1366号1903
 
 待办：会后同步合同扫描件。`,
+        api: `接口说明
+环境：预发
+负责人手机 13912345678
+
+鉴权方式：
+项目接口密钥: token=abc123secret
+
+调用示例：
+GET /v1/health`,
         bookRows: [
           ["姓名", "部门", "联系方式", "邮箱"],
           ["张三", "产品", "13800138000", "zhangsan@example.com"],
@@ -574,35 +578,24 @@
 联系方式：13912345678
 
 本页仅作 PDF 预览演示。`,
-        photo: "工牌照片识别结果\n姓名：张三\n联系方式：13800138000\n邮箱：zhangsan@example.com",
       };
-
-      const PHOTO_SVG =
-        "data:image/svg+xml," +
-        encodeURIComponent(
-          '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300">' +
-            '<rect fill="#e8eef6" width="480" height="300"/>' +
-            '<rect fill="#c5d4ea" x="170" y="50" width="140" height="160" rx="8"/>' +
-            '<circle fill="#8aa4c8" cx="240" cy="110" r="36"/>' +
-            '<text x="240" y="250" text-anchor="middle" font-size="16" fill="#445">工牌照片.png</text>' +
-          "</svg>"
-        );
 
       const chat = document.getElementById("chat");
       const review = document.getElementById("review");
       const modalLead = document.getElementById("modalLead");
-      const fileRail = document.getElementById("fileRail");
-      const previewTitle = document.getElementById("previewTitle");
-      const previewBody = document.getElementById("previewBody");
-      const modePill = document.getElementById("modePill");
-      const hitsCard = document.getElementById("hitsCard");
-      const saveInline = document.getElementById("saveInline");
+      const uploadRow = document.getElementById("uploadRow");
+      const detailList = document.getElementById("detailList");
       const fileInput = document.getElementById("fileInput");
       const question = document.getElementById("question");
 
+      const viewer = document.getElementById("viewer");
+      const viewerTitle = document.getElementById("viewerTitle");
+      const viewerBody = document.getElementById("viewerBody");
+      const viewerSave = document.getElementById("viewerSave");
+
       let pendingFiles = [];
       let currentFindings = [];
-      let selectedId = null;
+      let viewingId = null;
 
       addBubble("assistant", "您好，我是问答助手。您可以上传单个或多个文件提问。若文件中包含疑似敏感信息，将弹出全局提示。");
 
@@ -673,14 +666,14 @@
       }
 
       async function scanFiles(fileList) {
-        const files = Array.from(fileList);
+        const files = Array.from(fileList).filter((file) => kindOf(file.name) !== "image");
         const hits = [];
         for (const file of files) {
           const kind = kindOf(file.name);
           const item = { name: file.name, kind, size: file.size, snippets: [], content: "", rows: null, blobUrl: null };
-          if (kind === "image" || kind === "pdf") {
+          if (kind === "pdf") {
             item.blobUrl = URL.createObjectURL(file);
-            item.content = kind === "pdf" ? await readFileText(file) : file.name;
+            item.content = await readFileText(file);
           } else if (kind === "table") {
             item.content = await readFileText(file);
             item.rows = parseCsv(item.content);
@@ -694,7 +687,7 @@
       }
 
       function openModal(findings) {
-        currentFindings = findings.map((item, index) => ({
+        currentFindings = findings.filter((item) => (item.kind || kindOf(item.name)) !== "image").map((item, index) => ({
           id: item.id || item.name + "-" + index,
           name: item.name,
           kind: item.kind || kindOf(item.name),
@@ -704,7 +697,6 @@
           rows: item.rows ? item.rows.map((r) => r.slice()) : null,
           blobUrl: item.blobUrl || "",
         }));
-        selectedId = currentFindings[0] ? currentFindings[0].id : null;
         renderModal();
         review.classList.add("open");
       }
@@ -727,6 +719,15 @@
         return rows;
       }
 
+      function uniqueLabels(snippets) {
+        const labels = [];
+        for (const raw of snippets) {
+          const label = snippetLabel(raw);
+          if (label && !labels.includes(label)) labels.push(label);
+        }
+        return labels;
+      }
+
       function snippetLabel(raw) {
         const text = String(raw);
         const colon = text.indexOf(":");
@@ -747,71 +748,35 @@
         const findings = currentFindings;
         const n = findings.length;
         if (n === 0) {
+          closeViewer();
           closeModal();
           if (pendingFiles.length) attachFiles(pendingFiles);
           else addBubble("assistant", "已从本次上传中去除全部命中文件。");
           return;
         }
-        if (!selectedId || !findings.some((item) => item.id === selectedId)) {
-          selectedId = findings[0].id;
-        }
         modalLead.innerHTML =
-          "系统检测到您上传的 <span class=\"hit-count\">" + n + "</span> 个文件中包含疑似敏感信息，请您修改后重新上传。点选上方文件即可查看或修改。";
-        fileRail.innerHTML = findings.map((item) => {
-          const hint = item.kind === "word" || item.kind === "table" ? "可修改" : "仅预览";
-          const active = item.id === selectedId ? " active" : "";
+          "系统检测到您上传的 <span class=\"hit-count\">" + n + "</span> 个文件中包含疑似敏感信息，请您修改后重新上传。";
+        uploadRow.innerHTML = findings.map((item) => (
+          '<button type="button" class="upload-chip" data-open="' + escapeHtml(item.id) + '">' +
+            iconHtml(item.kind) +
+            '<div class="chip-meta">' +
+              '<div class="chip-name">' + escapeHtml(item.name) + "</div>" +
+              '<div class="chip-sub">' + escapeHtml(formatSize(item)) + "</div>" +
+            "</div>" +
+            '<span class="remove-file" data-remove="' + escapeHtml(item.id) + '" role="button" aria-label="去除此文件">×</span>' +
+          "</button>"
+        )).join("");
+        detailList.innerHTML = findings.map((item) => {
+          const lines = snippetPairs(item.snippets).map((row) =>
+            '<div class="hit-line"><span class="snippet-label">' + escapeHtml(row.label) + "：</span><span class=\"hit-value\">" + escapeHtml(row.value) + "</span></div>"
+          ).join("");
           return (
-            '<button type="button" class="file-tab' + active + '" role="tab" aria-selected="' + (item.id === selectedId) + '" data-open="' + escapeHtml(item.id) + '">' +
-              iconHtml(item.kind) +
-              '<div class="chip-meta">' +
-                '<div class="chip-name">' + escapeHtml(item.name) + "</div>" +
-                '<div class="chip-sub">' + escapeHtml(hint + " · " + formatSize(item)) + "</div>" +
-              "</div>" +
-              '<span class="remove-file" data-remove="' + escapeHtml(item.id) + '" role="button" aria-label="去除此文件">×</span>' +
-            "</button>"
+            '<div class="detail-file">' +
+              '<div class="hit-file">' + escapeHtml(item.name) + "</div>" +
+              '<div class="hit-box">' + (lines || "<span class=\"hit-value\">暂无明细</span>") + "</div>" +
+            "</div>"
           );
         }).join("");
-        renderWorkspace();
-      }
-
-      function renderWorkspace() {
-        const item = currentFindings.find((f) => f.id === selectedId);
-        if (!item) return;
-        const canEdit = item.kind === "word" || item.kind === "table";
-        previewTitle.textContent = item.name;
-        modePill.textContent = canEdit ? "可查看并修改" : "仅预览";
-        modePill.classList.toggle("readonly", !canEdit);
-        saveInline.hidden = !canEdit;
-        if (item.kind === "word") {
-          previewBody.innerHTML = '<textarea id="wordEditor" aria-label="文档内容"></textarea>';
-          document.getElementById("wordEditor").value = item.content;
-        } else if (item.kind === "table") {
-          const rows = item.rows && item.rows.length ? item.rows : [["列1"]];
-          previewBody.innerHTML =
-            '<table class="sheet"><tbody>' +
-            rows.map((row, ri) =>
-              "<tr>" +
-              row.map((cell, ci) => {
-                const tag = ri === 0 ? "th" : "td";
-                return "<" + tag + '><input data-r="' + ri + '" data-c="' + ci + '" value="' + escapeHtml(cell) + '"></' + tag + ">";
-              }).join("") +
-              "</tr>"
-            ).join("") +
-            "</tbody></table>";
-        } else if (item.kind === "pdf") {
-          if (item.blobUrl) {
-            previewBody.innerHTML = '<iframe class="pdf-frame" title="PDF 预览" src="' + item.blobUrl + '"></iframe>';
-          } else {
-            previewBody.innerHTML = '<div class="pdf-page">' + escapeHtml(item.content) + "</div>";
-          }
-        } else {
-          const src = item.blobUrl || PHOTO_SVG;
-          previewBody.innerHTML = '<div class="img-view"><img alt="" src="' + src + '"></div>';
-        }
-        const stamps = snippetPairs(item.snippets).map((row) =>
-          '<div class="stamp"><span class="stamp-label">' + escapeHtml(row.label) + '</span><span class="stamp-value">' + escapeHtml(row.value) + "</span></div>"
-        ).join("");
-        hitsCard.innerHTML = "<h4>疑似敏感信息明细</h4>" + (stamps || "<p>当前文件暂无明细。</p>");
       }
 
       function removeFinding(id) {
@@ -831,42 +796,67 @@
       }
 
       function closeModal() {
+        closeViewer();
         review.classList.remove("open");
-        selectedId = null;
       }
 
-      function selectFile(id) {
-        if (id === selectedId) return;
-        captureEdits();
-        selectedId = id;
-        renderModal();
+      function closeViewer() {
+        viewer.classList.remove("open");
+        viewingId = null;
       }
 
-      function captureEdits() {
-        const item = currentFindings.find((f) => f.id === selectedId);
+      function openViewer(id) {
+        const item = currentFindings.find((f) => f.id === id);
         if (!item) return;
+        viewingId = id;
+        viewerTitle.textContent = item.name;
+        const canEdit = item.kind === "word" || item.kind === "table";
+        viewerSave.style.display = canEdit ? "" : "none";
+        if (item.kind === "word") {
+          viewerBody.innerHTML = '<textarea id="wordEditor"></textarea>';
+          document.getElementById("wordEditor").value = item.content;
+        } else if (item.kind === "table") {
+          const rows = item.rows && item.rows.length ? item.rows : [["列1"]];
+          viewerBody.innerHTML =
+            '<table class="sheet"><tbody>' +
+            rows.map((row, ri) =>
+              "<tr>" +
+              row.map((cell, ci) => {
+                const tag = ri === 0 ? "th" : "td";
+                return "<" + tag + '><input data-r="' + ri + '" data-c="' + ci + '" value="' + escapeHtml(cell) + '"></' + tag + ">";
+              }).join("") +
+              "</tr>"
+            ).join("") +
+            "</tbody></table>";
+        } else {
+          if (item.blobUrl) {
+            viewerBody.innerHTML = '<iframe class="pdf-frame" title="PDF 预览" src="' + item.blobUrl + '"></iframe>';
+          } else {
+            viewerBody.innerHTML = '<div class="pdf-page">' + escapeHtml(item.content) + "</div>";
+          }
+        }
+        viewer.classList.add("open");
+      }
+
+      function saveViewer() {
+        const item = currentFindings.find((f) => f.id === viewingId);
+        if (!item) { closeViewer(); return; }
         if (item.kind === "word") {
           const ta = document.getElementById("wordEditor");
-          if (ta) item.content = ta.value;
+          item.content = ta ? ta.value : item.content;
+          item.snippets = extractSnippets(item.content);
         } else if (item.kind === "table") {
-          previewBody.querySelectorAll("input").forEach((el) => {
+          const inputs = viewerBody.querySelectorAll("input");
+          inputs.forEach((el) => {
             const r = Number(el.dataset.r);
             const c = Number(el.dataset.c);
-            if (!item.rows) item.rows = [];
             if (!item.rows[r]) item.rows[r] = [];
             item.rows[r][c] = el.value;
           });
           item.content = tableText(item.rows);
+          item.snippets = extractSnippets(item.content);
         }
-      }
-
-      function saveWorkspace() {
-        const item = currentFindings.find((f) => f.id === selectedId);
-        if (!item) return;
-        captureEdits();
-        if (item.kind === "word" || item.kind === "table") {
-          item.snippets = extractSnippets(item.kind === "table" ? tableText(item.rows) : item.content);
-        }
+        closeViewer();
         if (!item.snippets.length) {
           removeFinding(item.id);
           addBubble("assistant", item.name + " 已修改，当前未再检出敏感信息。");
@@ -905,7 +895,6 @@
       };
 
       document.getElementById("confirmBtn").onclick = () => {
-        captureEdits();
         closeModal();
         if (pendingFiles.length) attachFiles(pendingFiles);
         else addBubble("assistant", "已确认本次上传内容不涉及敏感信息。");
@@ -929,10 +918,13 @@
           return;
         }
         const open = e.target.closest("[data-open]");
-        if (open) selectFile(open.getAttribute("data-open"));
+        if (open) openViewer(open.getAttribute("data-open"));
       });
 
-      saveInline.onclick = saveWorkspace;
+      document.getElementById("viewerX").onclick = closeViewer;
+      document.getElementById("viewerClose").onclick = closeViewer;
+      document.getElementById("viewerSave").onclick = saveViewer;
+
       document.getElementById("sendBtn").onclick = send;
       question.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -946,7 +938,7 @@
         if (!text) return;
         question.value = "";
         addBubble("user", text);
-        addBubble("assistant", "这是演示环境。请先上传文件；若命中敏感规则，会弹出全局审阅窗。");
+        addBubble("assistant", "这是演示环境。请先上传文件；若命中敏感规则，会进入全文审阅台。");
       }
 
       document.querySelectorAll(".starters button").forEach((btn) => {
@@ -964,7 +956,7 @@
         }]);
       };
 
-      document.getElementById("demoMulti").onclick = () => {
+      function showMultiDemo() {
         pendingFiles = [];
         openModal([
           {
@@ -989,16 +981,10 @@
             content: DEMO.pdf,
             size: 102400,
           },
-          {
-            name: "工牌照片.png",
-            kind: "image",
-            snippets: extractSnippets(DEMO.photo),
-            content: DEMO.photo,
-            blobUrl: PHOTO_SVG,
-            size: 81920,
-          },
         ]);
-      };
+      }
+
+      document.getElementById("demoMulti").onclick = showMultiDemo;
     </script>
   </body>
 </html>

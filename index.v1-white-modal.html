@@ -131,11 +131,12 @@
 
       .modal-card {
         position: relative;
-        width: min(600px, 100%);
+        width: 800px;
+        max-width: calc(100% - 48px);
         background: #fff;
-        border-radius: 10px;
+        border-radius: 8px;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
-        padding: 24px 28px 22px;
+        padding: 32px 32px 24px;
       }
 
       .modal-close {
@@ -670,7 +671,7 @@ GET /v1/health`,
       }
 
       async function scanFiles(fileList) {
-        const files = Array.from(fileList);
+        const files = Array.from(fileList).filter((file) => kindOf(file.name) !== "image");
         const hits = [];
         for (const file of files) {
           const kind = kindOf(file.name);
@@ -691,7 +692,9 @@ GET /v1/health`,
       }
 
       function openModal(findings) {
-        currentFindings = findings.map((item, index) => ({
+        currentFindings = findings
+          .filter((item) => (item.kind || kindOf(item.name)) !== "image")
+          .map((item, index) => ({
           id: item.id || item.name + "-" + index,
           name: item.name,
           kind: item.kind || kindOf(item.name),
@@ -987,14 +990,6 @@ GET /v1/health`,
             snippets: extractSnippets(DEMO.pdf),
             content: DEMO.pdf,
             size: 102400,
-          },
-          {
-            name: "工牌照片.png",
-            kind: "image",
-            snippets: extractSnippets(DEMO.photo),
-            content: DEMO.photo,
-            blobUrl: PHOTO_SVG,
-            size: 81920,
           },
         ]);
       }
